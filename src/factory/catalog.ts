@@ -65,7 +65,7 @@ export async function readFactoryCatalog(transport: Transport): Promise<SarvamMo
   }
 }
 
-export function runtimeModels(rows: readonly SarvamModel[]): Model[] {
+export function runtimeModels(rows: readonly SarvamModel[]) {
   return rows.filter(row => row.type === "chat" && row.available).map(row => ({
     id: row.id, name: row.name, api: "openai-completions",
     input: row.image ? ["text", "image"] : ["text"],
@@ -77,7 +77,7 @@ export function runtimeModels(rows: readonly SarvamModel[]): Model[] {
       supportsLongCacheRetention: false, supportsPromptCacheKey: false, supportsStrictMode: false,
       maxTokensField: "max_tokens", supportsReasoningEffort: false, supportsUsageInStreaming: true,
     },
-  }));
+  } satisfies Model));
 }
 
 export async function discoverForHost(ctx: CatalogContext): Promise<SarvamModel[]> {

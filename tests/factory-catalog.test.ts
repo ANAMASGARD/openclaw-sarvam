@@ -24,7 +24,7 @@ describe("Token Factory account catalog", () => {
       expect(new Headers(init?.headers).get("api-subscription-key")).toBe("test");
       return Response.json({ data });
     }});
-    const models = runtimeModels(rows).filter(model => model.inference?.chat !== false);
+    const models = runtimeModels(rows);
     expect(models.map(model => model.id)).toEqual(["brand-new-model"]);
     expect(rows.find(row => row.id === "enterprise")?.available).toBe(false);
     expect(models[0]).toMatchObject({ contextWindow: 32000, maxTokens: 1700,

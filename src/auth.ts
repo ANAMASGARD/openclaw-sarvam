@@ -2,7 +2,8 @@ import type { PluginCapabilityCatalogHostContext } from "openclaw/plugin-sdk/plu
 import { resolveAgentDir, tryResolveDefaultAgentId } from "openclaw/plugin-sdk/agent-scope-runtime";
 
 type Host = PluginCapabilityCatalogHostContext;
-type Config = Parameters<Host["resolveApiKeyForProvider"]>[0]["cfg"];
+type AuthRequest = Parameters<Host["resolveApiKeyForProvider"]>[0];
+type Config = AuthRequest["cfg"];
 
 function readinessParams(cfg: Config) {
   const agent = cfg && tryResolveDefaultAgentId(cfg);
@@ -30,9 +31,16 @@ export function unboundEnvironmentKey(cfg?: Config): string | undefined {
 }
 
 /** Use host-selected credentials first. Only a missing, unbound account can use the shell key. */
-export async function resolveCapabilityKey(host: Pick<Host, "resolveApiKeyForProvider">, cfg: Config): Promise<string> {
-  const result = await host.resolveApiKeyForProvider({ provider: "sarvam", cfg, credentialPrecedence: "profile-first" }).catch((error: unknown) => {
-    if (error instanceof Error && "code" in error && error.code === "missing-provider-auth" &&
+export async function resolveCapabilityKey(
+  host: Pick<Host, "resolveApiKeyForProvider">,
+  cfg: Config,
+  scope: Pick<AuthRequest, "agentDir" | "workspaceDir" | "profileId" | "signal"> = {},
+): Promise<string> {
+  const result = await host.resolveApiKeyForProvider({
+    provider: "sarvam", cfg, credentialPrecedence: "profile-first", ...scope,
+    ...(scope.profileId ? { lockedProfile: true } : {}),
+  }).catch((error: unknown) => {
+    if (!scope.profileId && error instanceof Error && "code" in error && error.code === "missing-provider-auth" &&
       "provider" in error && error.provider === "sarvam") {
       const key = unboundEnvironmentKey(cfg);
       if (key) return { mode: "api-key", apiKey: key };

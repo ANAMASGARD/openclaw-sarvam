@@ -1,6 +1,8 @@
 import type { OpenClawPluginApi, ProviderPlugin } from "openclaw/plugin-sdk/plugin-entry";
 import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth";
-import { DEFAULT_CHAT, discoverForHost, FACTORY_URL, runtimeModels, supportsResponses } from "./catalog.js";
+import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import { resolveCapabilityKey } from "../auth.js";
+import { DEFAULT_CHAT, discoverForHost, FACTORY_URL, readFactoryCatalog, runtimeModels, supportsResponses } from "./catalog.js";
 import { decisions } from "./decisions.js";
 import { embeddings } from "./embeddings.js";
 
@@ -22,6 +24,18 @@ export function registerFactory(api: OpenClawPluginApi, enabled: boolean): void 
         const models = runtimeModels(await discoverForHost(ctx));
         return models.length ? { provider: { baseUrl: FACTORY_URL, api: "openai-completions", auth: "api-key", models } } : null;
       },
+    };
+    // A Gateway can accept its first agent turn before background discovery finishes.
+    provider.prepareDynamicModel = async ctx => {
+      if (ctx.authProfileMode && ctx.authProfileMode !== "api_key") return;
+      const { resolveApiKeyForProvider } = await import("openclaw/plugin-sdk/agent-runtime");
+      const signal = AbortSignal.timeout(12_000);
+      const apiKey = await resolveCapabilityKey({ resolveApiKeyForProvider }, ctx.config, {
+        agentDir: ctx.agentDir, workspaceDir: ctx.workspaceDir, profileId: ctx.authProfileId, signal,
+      });
+      const rows = await readFactoryCatalog({ apiKey, signal, guard: fetchWithSsrFGuard });
+      const model = runtimeModels(rows).find(row => row.id === ctx.modelId);
+      if (model) return { ...model, provider: "sarvam", baseUrl: FACTORY_URL };
     };
     provider.normalizeResolvedModel = ({ model }) => {
       if (model.baseUrl.replace(/\/+$/, "") !== FACTORY_URL) throw new Error("Sarvam models use https://api.sarvam.ai/v2.");

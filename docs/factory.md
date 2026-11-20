@@ -71,6 +71,8 @@ All 13 supported agent tool loops passed. OpenClaw's native `tools.invoke` also 
 
 The refreshed OpenClaw CLI catalog contained exactly the seven entitled chat models. Native `openclaw infer embedding create` reached Sarvam with the environment key, and a second run reached it through a saved OpenClaw API-key profile with the environment variable removed. Both returned the account’s HTTP 400 provisioning response. A successful live vector and a retrieval score require an organisation with EmbeddingGemma access.
 
+An agent can receive its first request before the Gateway's background catalog is ready. On a cache miss, the plugin reads the live account catalog for the agent's selected profile and returns the exact entitled chat entry through OpenClaw's asynchronous model-resolution hook. It carries the advertised input, context and tool capabilities into that turn. [Provider runtime hooks](https://docs.openclaw.ai/plugins/sdk-provider-plugins/runtime-hooks)
+
 ## Reproduce
 
 ```sh

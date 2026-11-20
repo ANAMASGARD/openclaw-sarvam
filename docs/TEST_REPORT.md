@@ -23,7 +23,7 @@ The Bulbul direct suite synthesized 12 utterances. FFprobe verified their codecs
 
 The account's live catalog listed 16 IDs. Seven chat models and Prism returned usable answers. For eight restricted IDs the plugin normalized the upstream provisioning response to `provisioning_required`. Native OpenClaw embedding requests authenticated using both the process environment and a stored agent profile. Successful Clef inference, live embeddings and vector retrieval require provisioned access. [Per-model results](factory.md)
 
-During a repeat test, the Gateway reported `deepseekv4.1-flash-1017` as unknown after its account catalog connection failed. A new live run on the same account completed the model's tool conversation. The HTTP client now retries recognized transient connection failures once on catalog discovery within the original deadline. A regression test injects a socket reset and verifies discovery recovers. Separate tests cover cancellation, policy rejection and an ambiguous failure during a write.
+Repeat testing exposed two ways an entitled model could briefly appear unknown. A catalog connection failed before a DeepSeek turn, and a freshly started Gateway accepted its first GLM turn before applying its background catalog. Discovery now retries recognized transient connection failures once within the original deadline. On a cold registry miss, OpenClaw's public `prepareDynamicModel` hook resolves the exact requested chat model from the active account. Tests cover socket reset, cancellation, policy rejection, an ambiguous write failure, and denying access under the wrong profile. [OpenClaw provider runtime hooks](https://docs.openclaw.ai/plugins/sdk-provider-plugins/runtime-hooks)
 
 ## Native OpenClaw
 
@@ -54,7 +54,7 @@ The package declares the tested OpenClaw range `>=2026.11.5 <=2026.11.6`. Instal
 | Check | Observed result |
 | --- | --- |
 | Fresh `npm ci --ignore-scripts`, TypeScript typecheck and build | PASS |
-| Offline Vitest | 86 passed, 0 failed, 1 billed test skipped |
+| Offline Vitest | 87 passed, 0 failed, 1 billed test skipped |
 | ClawHub Plugin Inspector | PASS, seven expected runtime registrations, zero warnings or breakages |
 | OpenClaw compatibility lint | PASS, zero warnings |
 | Packed plugin on OpenClaw 2026.11.5 and 2026.11.6 | PASS on both. Each host loaded the installed plugin and validated all three example configurations. |
