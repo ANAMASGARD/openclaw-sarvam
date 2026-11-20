@@ -23,7 +23,8 @@ export function jsonOutput(output) {
 export function safeMessage(value, secrets = [], limit = 2600) {
   let message = String(value);
   for (const secret of secrets.filter(Boolean)) message = message.replaceAll(secret, "[redacted]");
-  return message.replace(/https?:\/\/[^\s"']+\?[^\s"']+/g, "[signed URL]").slice(-limit);
+  return message.replace(/https?:\/\/[^\s"']+\?[^\s"']+/g, "[signed URL]")
+    .replace(/[A-Za-z0-9+/=]{100,}/g, "[encoded payload]").slice(-limit);
 }
 export async function freePort() {
   const socket = createServer();
@@ -58,7 +59,10 @@ export async function isolatedHost({ live = false, archive } = {}) {
   }
   const cmd = async(args, timeout = 120000) => {
     try { return (await execute(binary, args, { env, timeout, maxBuffer: 16 * 1024 * 1024 })).stdout; }
-    catch (err) { throw new Error(safe([err.stderr, err.stdout, err.message].filter(Boolean).join("\n"))); }
+    catch (err) {
+      const output = [err.stderr, err.stdout].filter(Boolean).join("\n").trim();
+      throw new Error(safe(output || `OpenClaw ${args[0]} failed (${err.code ?? "unknown"}).`));
+    }
   };
   const read = async () => JSON.parse(await readFile(configPath,"utf8"));
   const write = async (cfg) => writeFile(configPath, JSON.stringify(cfg,null,2), {mode:0o600});

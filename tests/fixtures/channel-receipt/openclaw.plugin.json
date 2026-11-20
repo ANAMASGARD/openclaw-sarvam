@@ -1,0 +1,6 @@
+{
+  "id": "sarvam-channel-receipt",
+  "name": "Sarvam private channel acceptance receipts",
+  "activation": { "onStartup": true },
+  "configSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+}
