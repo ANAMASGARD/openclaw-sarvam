@@ -36,3 +36,27 @@ it("authenticates the fixed origin and enforces the response size limit", async 
   try { await expect(readJson(lease.response, 3)).rejects.toThrow(/exceed/i); }
   finally { await lease.release(); }
 });
+
+it("offers the environment key only for a missing, unbound Sarvam account in a cold CLI", async () => {
+  vi.stubEnv("SARVAM_API_KEY", "env-account");
+  const error = Object.assign(new Error("No credential found"), {provider:"sarvam",code:"missing-provider-auth"});
+  const host = {resolveApiKeyForProvider: vi.fn().mockRejectedValue(error)};
+  expect(await resolveCapabilityKey(host, {})).toBe("env-account");
+  await expect(resolveCapabilityKey(host, {auth:{profiles:{"sarvam:owner":{provider:"sarvam",mode:"api_key"}}}})).rejects.toBe(error);
+  await expect(resolveCapabilityKey(host, {auth:{order:{sarvam:["sarvam:missing"]}}})).rejects.toBe(error);
+  await expect(resolveCapabilityKey(host, {models:{providers:{sarvam:{baseUrl:"https://api.sarvam.ai/v2",models:[],apiKey:"profile"}}}})).rejects.toBe(error);
+  host.resolveApiKeyForProvider.mockRejectedValue(Object.assign(new Error("disallowed"),{provider:"sarvam",code:"access-denied"}));
+  await expect(resolveCapabilityKey(host, {})).rejects.toThrow("disallowed");
+});
+
+it("retries transient reads within the limit and respects long Retry-After", async () => {
+  const fetchFn=vi.fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({},{status:429,headers:{"retry-after":"0"}}))
+    .mockResolvedValueOnce(Response.json({ok:true}));
+  const lease=await request("/v2/models",{}, {apiKey:"temporary",fetchFn},1);
+  try {expect(await readJson(lease.response)).toEqual({ok:true});}
+  finally {await lease.release();}
+  fetchFn.mockClear().mockResolvedValue(Response.json({},{status:503,headers:{"retry-after":"120"}}));
+  await expect(request("/v2/models",{}, {apiKey:"temporary",fetchFn},2)).rejects.toMatchObject({status:503});
+  expect(fetchFn).toHaveBeenCalledOnce();
+});

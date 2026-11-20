@@ -11,6 +11,7 @@ export type Transport = {
   apiKey?: string;
   timeoutMs?: number;
   signal?: AbortSignal;
+  beforeRequest?: () => void;
   fetchFn?: typeof fetch;
   guard?: Guard;
   dispatcherPolicy?: Parameters<Guard>[0]["dispatcherPolicy"];
@@ -76,8 +77,9 @@ async function toHttpError(response: Response): Promise<SarvamHttpError> {
   const detail = string(err.message) ?? string(err.detail) ?? "";
   const allowed = ["invalid_request_error","not_found_error","invalid_api_key_error","rate_limit_error","insufficient_quota"];
   const reported = string(err.code) ?? string(err.type);
+  const codecRejected = [400, 422].includes(response.status) && /opus|audio.codec/i.test(detail) && /unsupported|not supported|not available|invalid|sample.rate/i.test(detail);
   const code = /provisioned throughput|not enabled for your organi[sz]ation|not whitelisted/i.test(detail) ?
-    "provisioning_required" : reported && allowed.includes(reported) ? reported : undefined;
+    "provisioning_required" : codecRejected ? "unsupported_audio_codec" : reported && allowed.includes(reported) ? reported : undefined;
   const after = response.headers.get("retry-after");
   const ms = after ? /^\d+(\.\d+)?$/.test(after) ? Number(after) * 1000 : Date.parse(after) - Date.now() : NaN;
   return new SarvamHttpError(response.status, code, Number.isFinite(ms) ? Math.max(0, ms) : undefined);
@@ -98,11 +100,13 @@ export async function request(path: string, init: RequestInit, transport: Transp
     signal.throwIfAborted();
     const options = { ...init, headers, signal, redirect: "error" as const };
     let lease: Lease;
+    const beforeRequest = () => { signal.throwIfAborted(); transport.beforeRequest?.(); };
+    beforeRequest();
     try {
       lease = transport.guard ? await transport.guard({
         url: url.href, init: options, fetchImpl: fetchFn, signal, maxRedirects: 0, requireHttps: true,
         mode: transport.dispatcherPolicy?.mode === "explicit-proxy" ? "trusted_explicit_proxy" : "trusted_env_proxy",
-        dispatcherPolicy: transport.dispatcherPolicy, beforeRequest: () => signal.throwIfAborted(),
+        dispatcherPolicy: transport.dispatcherPolicy, beforeRequest,
         capture: false, auditContext: "Sarvam AI",
       }) : { response: await fetchFn(url, options), release: async () => {} };
     } catch {
