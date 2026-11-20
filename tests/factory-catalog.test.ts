@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { readFactoryCatalog, runtimeModels, supportsResponses } from "../src/factory/catalog.js";
 
 const basic = { type: "chat", id: "brand-new-model", display_name: "New", context_length: 32000,
@@ -6,6 +6,16 @@ const basic = { type: "chat", id: "brand-new-model", display_name: "New", contex
   default_parameters: { max_tokens: 1700 } };
 
 describe("Token Factory account catalog", () => {
+  it("recovers the account catalog after a transient socket reset", async () => {
+    const reset = Object.assign(new Error("fixture connection reset"), { code: "ECONNRESET" });
+    const fetchFn = vi.fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError("fetch failed", { cause: reset }))
+      .mockResolvedValueOnce(Response.json({ data: [basic] }));
+    const rows = await readFactoryCatalog({ apiKey: "fixture", fetchFn });
+    expect(rows.map(row => row.id)).toEqual([basic.id]);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps restricted and non-chat models outside the runnable chat catalog", async () => {
     const data = [basic, { ...basic, id: "enterprise", access: "provisioned", whitelisted: false },
       { ...basic, id: "embed", type: "embedding" }, { ...basic, id: "judge", type: "decision" }];

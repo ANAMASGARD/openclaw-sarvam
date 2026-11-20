@@ -85,6 +85,21 @@ async function toHttpError(response: Response): Promise<SarvamHttpError> {
   return new SarvamHttpError(response.status, code, Number.isFinite(ms) ? Math.max(0, ms) : undefined);
 }
 type Lease = { response: Response; release(): Promise<void> };
+const transientConnectionCodes = new Set([
+  "EAI_AGAIN", "ECONNREFUSED", "ECONNRESET", "EHOSTUNREACH", "ENETUNREACH", "EPIPE", "ETIMEDOUT",
+  "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_SOCKET",
+]);
+
+function connectionCode(error: unknown): string | undefined {
+  // Node fetch wraps system and Undici errors in a TypeError with a cause.
+  for (let depth = 0; error instanceof Error && depth < 4; depth++, error = error.cause) {
+    if ("code" in error && typeof error.code === "string" && transientConnectionCodes.has(error.code)) {
+      return error.code;
+    }
+  }
+  return undefined;
+}
+
 export async function request(path: string, init: RequestInit, transport: Transport, retries = 0): Promise<Lease> {
   const url = new URL(path, ORIGIN);
   if (url.origin !== ORIGIN || url.username || url.password) throw new Error("Invalid Sarvam API origin.");
@@ -96,6 +111,7 @@ export async function request(path: string, init: RequestInit, transport: Transp
   const signal = AbortSignal.any([deadline, ...[transport.signal, init.signal].filter((s): s is AbortSignal => Boolean(s))]);
   const fetchFn = transport.fetchFn ?? fetch;
   const attempts = Math.min(2, Math.max(0, Math.floor(retries)));
+  const method = (init.method ?? "GET").toUpperCase();
   for (let attempt = 0; ; attempt++) {
     signal.throwIfAborted();
     const options = { ...init, headers, signal, redirect: "error" as const };
@@ -109,9 +125,14 @@ export async function request(path: string, init: RequestInit, transport: Transp
         dispatcherPolicy: transport.dispatcherPolicy, beforeRequest,
         capture: false, auditContext: "Sarvam AI",
       }) : { response: await fetchFn(url, options), release: async () => {} };
-    } catch {
+    } catch (cause) {
       signal.throwIfAborted();
-      throw new Error("Could not connect to Sarvam AI.");
+      const code = connectionCode(cause);
+      if (code && attempt < attempts && (method === "GET" || method === "HEAD")) {
+        await delay(400 * 2 ** attempt, undefined, { signal });
+        continue;
+      }
+      throw new Error(code ? `Could not connect to Sarvam AI (${code}).` : "Could not connect to Sarvam AI.");
     }
     if (lease.response.ok) return lease;
     let error: SarvamHttpError;

@@ -60,3 +60,27 @@ it("retries transient reads within the limit and respects long Retry-After", asy
   await expect(request("/v2/models",{}, {apiKey:"temporary",fetchFn},2)).rejects.toMatchObject({status:503});
   expect(fetchFn).toHaveBeenCalledOnce();
 });
+
+it("never replays a write after an ambiguous socket failure", async () => {
+  const error = Object.assign(new Error("private diagnostic"), { code: "ECONNRESET" });
+  const fetchFn = vi.fn<typeof fetch>().mockRejectedValue(error);
+  await expect(request("/speech-to-text", { method: "POST" }, { apiKey: "fixture", fetchFn }, 2))
+    .rejects.toThrow(/^Could not connect to Sarvam AI \(ECONNRESET\)\.$/);
+  expect(fetchFn).toHaveBeenCalledOnce();
+});
+
+it("does not retry a guard rejection or ignore cancellation during read backoff", async () => {
+  const denied = vi.fn<typeof fetch>().mockRejectedValue(new Error("private policy detail"));
+  await expect(request("/v2/models", {}, { apiKey: "fixture", fetchFn: denied }, 1))
+    .rejects.toThrow(/^Could not connect to Sarvam AI\.$/);
+  expect(denied).toHaveBeenCalledOnce();
+
+  const controller = new AbortController();
+  const fetchFn = vi.fn<typeof fetch>(async () => {
+    setTimeout(() => controller.abort(), 10);
+    throw Object.assign(new Error("temporary"), { code: "EAI_AGAIN" });
+  });
+  await expect(request("/v2/models", {}, { apiKey: "fixture", fetchFn, signal: controller.signal }, 1))
+    .rejects.toMatchObject({ name: "AbortError" });
+  expect(fetchFn).toHaveBeenCalledOnce();
+});
