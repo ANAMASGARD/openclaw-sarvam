@@ -1,0 +1,95 @@
+{
+  "name": "openclaw-plugin-sarvam",
+  "version": "0.1.0",
+  "description": "Sarvam AI for OpenClaw with Saaras transcription, Bulbul speech, and Token Factory models.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --config ./vitest.config.ts",
+    "validate": "npm run build && openclaw plugins validate --root . && clawhub package validate . --out .clawhub-validation",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "openclaw plugins lint --root ."
+  },
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "README.md",
+    "docs",
+    "examples",
+    "assets",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "openclaw": ">=2026.11.5 <2026.12.0"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/ws": "8.18.2",
+    "clawhub": "0.26.0",
+    "openclaw": "2026.11.5",
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.1"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": "2026.11.5"
+    },
+    "build": {
+      "openclawVersion": "2026.11.5"
+    },
+    "install": {
+      "clawhubSpec": "clawhub:openclaw-plugin-sarvam",
+      "defaultChoice": "clawhub",
+      "minHostVersion": ">=2026.11.5"
+    },
+    "release": {
+      "publishToClawHub": true
+    }
+  },
+  "pluginInspector": {
+    "version": 1,
+    "plugin": {
+      "id": "sarvam",
+      "priority": "high",
+      "seams": [
+        "plugin-runtime"
+      ],
+      "sourceRoot": ".",
+      "expect": {
+        "registrations": [
+          "registerProvider"
+        ]
+      }
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ANAMASGARD/openclaw-sarvam.git"
+  },
+  "keywords": [
+    "sarvam",
+    "saaras",
+    "bulbul",
+    "speech-to-text",
+    "text-to-speech",
+    "token-factory",
+    "voice-ai"
+  ],
+  "dependencies": {
+    "ws": "8.23.0"
+  },
+  "engines": {
+    "node": ">=24.16.0 <25 || >=26.1.0"
+  },
+  "packageManager": "npm@12.2.0"
+}

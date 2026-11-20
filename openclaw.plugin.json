@@ -1,0 +1,52 @@
+{
+  "id": "sarvam",
+  "name": "OpenClaw Sarvam",
+  "description": "Sarvam AI for OpenClaw with Saaras transcription, Bulbul speech, and Token Factory models.",
+  "version": "0.1.0",
+  "providers": [
+    "sarvam"
+  ],
+  "setup": {
+    "providers": [
+      {
+        "id": "sarvam",
+        "envVars": [
+          "SARVAM_API_KEY"
+        ]
+      }
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "stt": {
+        "type": "boolean",
+        "default": true,
+        "title": "Saaras transcription"
+      },
+      "tts": {
+        "type": "boolean",
+        "default": true,
+        "title": "Bulbul speech"
+      },
+      "tokenFactory": {
+        "type": "boolean",
+        "default": true,
+        "title": "Token Factory models"
+      }
+    }
+  },
+  "activation": {
+    "onStartup": true,
+    "providers": [
+      "sarvam"
+    ],
+    "capabilities": [
+      "provider"
+    ]
+  },
+  "categories": [
+    "models"
+  ]
+}
