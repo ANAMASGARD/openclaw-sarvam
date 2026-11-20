@@ -1,10 +1,10 @@
-// Operator-assisted external test. No messages are seeded by the harness.
+// Private-channel acceptance with handset or generated Gateway input.
 import { createHmac, randomBytes, randomInt } from "node:crypto";
 import { lstat, readFile, rm, writeFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { execute, freePort, isolatedHost, jsonOutput } from "./host.mjs";
-import { deliverGatewayReply, submitAudio } from "./channel-input.mjs";
+import { deliverGatewayReply, submitAudio, verifySpokenLookup } from "./channel-input.mjs";
 import { telegramReceipt } from "./telegram-receipt.mjs";
 
 class Blocked extends Error {}
@@ -48,12 +48,12 @@ const words = (value) =>
     ?.join(" ") ?? "";
 const auditSalt = randomBytes(32);
 const digest = (id) => createHmac("sha256", auditSalt).update(id).digest("hex").slice(0, 16);
-const speaksColor = (text, color) =>
+const colorWords = (text) =>
   words(text)
     .split(" ")
     .filter((w) => phraseWords.includes(w))
-    .join(" ")
-    .includes(color);
+    .join(" ");
+const speaksColor = (text, color) => colorWords(text).includes(color);
 const transcriptText = (obj) => {
   if (Array.isArray(obj)) return obj.flatMap(transcriptText).join(" ");
   if (obj && typeof obj === "object")
@@ -423,10 +423,10 @@ async function runPair(host, installed, p, pair, relay) {
       "--json",
     ]),
   );
-  fail(
-    speaksColor(transcriptText(answer), color),
-    "The voice recording did not speak the tool result",
-  );
+  await verifySpokenLookup({
+    expected: color, recognizedColors: colorWords(transcriptText(answer)), ingress, file,
+    mismatchFile: join(p.evidenceDir, run + "-mismatch.ogg"),
+  });
   await writeFile(
     join(p.evidenceDir, run + "-accepted.json"),
     JSON.stringify({

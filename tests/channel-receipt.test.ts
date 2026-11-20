@@ -1,12 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { telegramReceipt } from "./telegram-receipt.mjs";
-import { deliverGatewayReply, submitAudio } from "./channel-input.mjs";
+import { deliverGatewayReply, submitAudio, verifySpokenLookup } from "./channel-input.mjs";
 import { sameRecipient } from "./fixtures/channel-receipt/index.js";
 
 describe("allowlisted real-channel evidence collection", () => {
+  it("keeps a private diagnostic clip only for a failed generated-audio check", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "sarvam-mismatch-"));
+    try {
+      const file = join(dir, "out.ogg"), mismatchFile = join(dir, "mismatch.ogg");
+      const check = { file, mismatchFile, expected: "red green blue", recognizedColors: "red blue" };
+      await writeFile(file, "synthetic fixture");
+      await expect(verifySpokenLookup({ ...check, ingress: "phone" })).rejects.toThrow(/did not match/);
+      await expect(stat(mismatchFile)).rejects.toMatchObject({ code: "ENOENT" });
+      await verifySpokenLookup({ ...check, ingress: "gateway", recognizedColors: check.expected });
+      await expect(stat(mismatchFile)).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(verifySpokenLookup({ ...check, ingress: "gateway" })).rejects.toThrow(/heard color words "red blue"/);
+      expect((await stat(mismatchFile)).mode & 0o777).toBe(0o600);
+      expect(await readFile(mismatchFile, "utf8")).toBe("synthetic fixture");
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
   it("matches private channel peer identities and rejects group and unrelated IDs", () => {
     expect(sameRecipient("telegram", "telegram:123456", "123456")).toBe(true);
     expect(sameRecipient("telegram", "-123456", "123456")).toBe(false);

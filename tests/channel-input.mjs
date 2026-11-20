@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, realpath, stat } from "node:fs/promises";
+import { readFile, realpath, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { execute } from "./host.mjs";
@@ -7,6 +7,15 @@ import { execute } from "./host.mjs";
 const fail = (value, message) => {
   if (!value) throw new Error(message);
 };
+
+export async function verifySpokenLookup({ expected, recognizedColors, ingress, file, mismatchFile }) {
+  if (recognizedColors.includes(expected)) return;
+  if (ingress !== "gateway") throw new Error("The voice recording did not match the spoken lookup answer");
+  // This branch handles generated test audio only. The harness validates its private evidence directory.
+  await writeFile(mismatchFile, await readFile(file), { mode: 0o600, flag: "wx" });
+  throw new Error(`Voice content mismatch. Expected "${expected}", heard color words "${recognizedColors}".`);
+}
+
 export async function submitAudio(host, port, p, channel, ingress, utterance) {
   const wav = join(host.dir, "test-question.wav"),
     ogg = join(host.dir, "test-question.ogg");

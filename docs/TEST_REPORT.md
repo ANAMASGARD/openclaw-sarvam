@@ -31,6 +31,8 @@ Repeat testing exposed two ways an entitled model could briefly appear unknown. 
 - A fresh 2026.11.5 installation ran the native audio CLI with only the environment key. After saving the credential in OpenClaw and removing it from the process environment, separate CLI processes recovered the Batch job. The production meeting engine selected both live realtime model versions, recognized 19 words from each μ-law input and disposed a cancelled session without a late transcript.
 - On both 2026.11.5 and 2026.11.6, Gateway buffered synthesis and its public speech-streaming interface returned Ogg/Opus on both Bulbul versions over every supported transport. Cancelling an active WebSocket synthesis after the first audio chunk passed on each host. The channel adapter selected voice-note format through a loopback Telegram fixture.
 - A local Telegram Bot API fixture fed a generated voice note into the official Telegram adapter. All four Saaras/Bulbul pairs passed on 2026.11.5 with an environment key and on 2026.11.6 with a stored profile and no environment key. OpenClaw transcribed each recording, ran the agent and its tool, then automatically sent a spoken reply. FFprobe checked the resulting file and a second transcription checked its spoken answer.
+- The complete opt-in live suite exited successfully against the runtime built from `f7ed9ed`. In an additional four-pair run on 2026.11.6, the v3/v3 Telegram fixture received the correct text answer and timed out waiting for audio. The same pair on an isolated repeat produced a 1.46-second voice note containing the lookup answer. The other three pairs passed on the first attempt. The cause of the text-only reply remains unconfirmed.
+- A separate 2026.11.6 Gateway used a stored agent credential to classify a structured parcel-delivery record with Prism. It returned a Boolean probability of 0.9744, selected `received` over `pending`, and gave a score of 1.98 on the three-level scale.
 
 ## Real channel delivery
 
@@ -38,12 +40,14 @@ The two real private accounts were an allowlisted Telegram bot DM and the linked
 
 | Saaras for input | Bulbul for reply | Real Telegram voice file | Real WhatsApp voice send |
 | --- | --- | --- | --- |
-| `saaras:v3` | `bulbul:v3` | PASS, 2.40 s | PASS, 1.46 s |
-| `saaras:v3` | `bulbul:v4-flash` | PASS, 1.05 s | PASS, 0.89 s |
-| `saaras:v4` | `bulbul:v3` | PASS, 2.05 s | PASS, 6.72 s |
-| `saaras:v4` | `bulbul:v4-flash` | PASS, 8.17 s | PASS, 2.73 s |
+| `saaras:v3` | `bulbul:v3` | PASS, 1.12 s | PASS, 1.46 s |
+| `saaras:v3` | `bulbul:v4-flash` | PASS, 1.13 s | PASS, 2.09 s |
+| `saaras:v4` | `bulbul:v3` | PASS, 5.01 s | PASS, 2.57 s |
+| `saaras:v4` | `bulbul:v4-flash` | PASS, 1.85 s | PASS on repeat, 3.21 s |
 
 Telegram returned a `sendVoice` receipt for each reply. The harness downloaded Telegram's stored file with `getFile` and checked that file. WhatsApp's official OpenClaw channel accepted each voice send and returned a message ID. Its duration and spoken-content checks used the outgoing file passed to the channel. WhatsApp recipient-side download and playback are **NOT TESTED**.
+
+The first full external run passed all eight pairs. On the later candidate run shown in the table, WhatsApp accepted the v4/v4-flash send, but the automated transcription missed the expected three-word sequence. That attempt was **FAIL**. A focused repeat passed with the same model selection and acceptance rule. The first trial's audio had already been cleaned up, so the source of the content difference is unknown. The harness now retains mismatched generated clips in the operator's private evidence directory.
 
 Eight genuine handset-originated voice conversations remain **BLOCKED**. The Telegram account sent the bot a real private Start message. No handset voice note arrived during the live input windows. In a separate trial, WhatsApp accepted a test recording sent to the linked account's self-chat. Its adapter produced no new inbound event for that self-sent message. Neither trial supplies a handset voice receipt. Raw chat IDs, message IDs and credentials stay outside the repository. [Channel acceptance procedure](channel-tests.md)
 
@@ -54,7 +58,7 @@ The package declares the tested OpenClaw range `>=2026.11.5 <=2026.11.6`. Instal
 | Check | Observed result |
 | --- | --- |
 | Fresh `npm ci --ignore-scripts`, TypeScript typecheck and build | PASS |
-| Offline Vitest | 87 passed, 0 failed, 1 billed test skipped |
+| Offline Vitest | 88 passed, 0 failed, 1 billed test skipped |
 | ClawHub Plugin Inspector | PASS, seven expected runtime registrations, zero warnings or breakages |
 | OpenClaw compatibility lint | PASS, zero warnings |
 | Packed plugin on OpenClaw 2026.11.5 and 2026.11.6 | PASS on both. Each host loaded the installed plugin and validated all three example configurations. |
