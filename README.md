@@ -1,6 +1,10 @@
-# OpenClaw Sarvam
+[![OpenClaw](https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/openclaw-banner-dark.png)](https://openclaw.ai/)
 
-A community OpenClaw plugin that connects Saaras speech recognition, Sarvam Token Factory and Bulbul speech synthesis with one Sarvam API key. Enable each service independently. OpenClaw handles agent sessions, tool execution and messaging.
+# Sarvam AI Plugin for OpenClaw
+
+[![Sarvam AI homepage featuring “AI for all from India”](assets/sarvam-homepage.png)](https://www.sarvam.ai/)
+
+Give your OpenClaw agent a voice with one `SARVAM_API_KEY`. Saaras transcribes an incoming recording, a Token Factory model can answer and use tools, and Bulbul speaks the reply. This community plugin lets you enable each service independently, so you can also add speech to an agent that already uses another chat model.
 
 | To enable | Use | Choose |
 | --- | --- | --- |

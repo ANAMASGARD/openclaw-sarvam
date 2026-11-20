@@ -77,7 +77,7 @@ npm pack --dry-run
 npm pack
 ```
 
-The ClawHub Plugin Inspector validates native providers and checks seven runtime registrations. The two target hosts' `openclaw plugins validate --root .` authoring command reports **FAIL** because it requires tool or feature authoring metadata. CI runs the ClawHub Inspector plus a real archive install and runtime inspection on both host releases. The single skipped offline test is an opt-in, billed Gateway experiment. Its separate authenticated result appears above.
+For provider plugins, both target hosts document `clawhub package validate` as the authoring check. The Plugin Inspector passed all seven expected registrations. A separate diagnostic invocation of `openclaw plugins validate --root .` rejected this package because that command expects generated tool or feature metadata. CI also installs the archive and inspects the running provider on both hosts. The offline suite skips one opt-in, billed Gateway experiment, which ran separately with credentials. [OpenClaw provider scaffold and validation](https://docs.openclaw.ai/cli/plugins/authoring#provider-scaffold)
 
 ## Scope
 
