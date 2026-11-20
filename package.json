@@ -6,9 +6,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --config ./vitest.config.ts",
-    "validate": "npm run build && openclaw plugins validate --root . && clawhub package validate . --out .clawhub-validation",
+    "validate": "npm run build && clawhub package validate . --openclaw-version 2026.11.5 --out .clawhub-validation",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "openclaw plugins lint --root ."
+    "lint": "openclaw plugins lint --root .",
+    "test:package": "npm run build && node tests/package.mjs",
+    "test:live": "npm run build && node tests/live.mjs",
+    "test:gateway:voice": "npm run build && node tests/local-key.mjs gateway-voice",
+    "test:channels": "node tests/local-key.mjs channel-live"
   },
   "files": [
     "dist",
@@ -20,7 +24,7 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "openclaw": ">=2026.11.5 <2026.12.0"
+    "openclaw": ">=2026.11.5 <=2026.11.6"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -41,7 +45,7 @@
       "./dist/index.js"
     ],
     "compat": {
-      "pluginApi": "2026.11.5"
+      "pluginApi": ">=2026.11.5 <=2026.11.6"
     },
     "build": {
       "openclawVersion": "2026.11.5"
@@ -66,7 +70,13 @@
       "sourceRoot": ".",
       "expect": {
         "registrations": [
-          "registerProvider"
+          "registerProvider",
+          "registerModelCatalogProvider",
+          "registerDecisionProvider",
+          "registerEmbeddingProvider",
+          "registerMediaUnderstandingProvider",
+          "registerRealtimeTranscriptionProvider",
+          "registerSpeechProvider"
         ]
       }
     }

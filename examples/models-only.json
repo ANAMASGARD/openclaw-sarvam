@@ -1,0 +1,22 @@
+{
+  "plugins": {
+    "entries": {
+      "sarvam": {
+        "enabled": true,
+        "config": {
+          "stt": false,
+          "tts": false,
+          "tokenFactory": true
+        }
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "sarvam/glm5.3-flash",
+        "fallbacks": []
+      }
+    }
+  }
+}

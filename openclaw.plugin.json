@@ -1,7 +1,7 @@
 {
   "id": "sarvam",
   "name": "OpenClaw Sarvam",
-  "description": "Sarvam AI for OpenClaw with Saaras transcription, Bulbul speech, and Token Factory models.",
+  "description": "Sarvam AI for OpenClaw with Saaras speech-to-text, Bulbul speech synthesis, Token Factory LLMs, decisions and embeddings.",
   "version": "0.1.0",
   "providers": [
     "sarvam"
@@ -41,12 +41,160 @@
     "onStartup": true,
     "providers": [
       "sarvam"
-    ],
-    "capabilities": [
-      "provider"
     ]
   },
   "categories": [
     "models"
-  ]
+  ],
+  "contracts": {
+    "mediaUnderstandingProviders": [
+      "sarvam"
+    ],
+    "realtimeTranscriptionProviders": [
+      "sarvam"
+    ],
+    "speechProviders": [
+      "sarvam"
+    ],
+    "decisionProviders": [
+      "sarvam"
+    ],
+    "embeddingProviders": [
+      "sarvam"
+    ]
+  },
+  "mediaUnderstandingProviderMetadata": {
+    "sarvam": {
+      "capabilities": [
+        "audio"
+      ],
+      "defaultModels": {
+        "audio": "saaras:v4"
+      }
+    }
+  },
+  "providerAuthChoices": [
+    {
+      "provider": "sarvam",
+      "method": "api-key",
+      "choiceId": "sarvam-api-key",
+      "choiceLabel": "Sarvam AI API key",
+      "appGuidedSecret": true,
+      "groupId": "sarvam",
+      "groupLabel": "Sarvam AI",
+      "optionKey": "sarvamApiKey",
+      "cliFlag": "--sarvam-api-key",
+      "cliOption": "--sarvam-api-key <key>",
+      "cliDescription": "Sarvam AI API key"
+    }
+  ],
+  "modelCatalog": {
+    "discovery": {
+      "sarvam": "runtime"
+    },
+    "providers": {
+      "sarvam": {
+        "baseUrl": "https://api.sarvam.ai/v2",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "sarvam-prism",
+            "name": "Sarvam Prism",
+            "input": [
+              "text"
+            ],
+            "inference": {
+              "chat": false,
+              "decision": {
+                "protocol": "sarvam-systemone",
+                "input": [
+                  "text"
+                ],
+                "questions": {
+                  "boolean": {
+                    "probabilities": "boolean",
+                    "abstention": false
+                  },
+                  "choice": {
+                    "probabilities": "categorical",
+                    "abstention": false,
+                    "minOptions": 2,
+                    "maxOptions": 255
+                  },
+                  "score": {
+                    "probabilities": "categorical",
+                    "abstention": false,
+                    "minOptions": 2,
+                    "maxOptions": 10
+                  }
+                },
+                "confidence": "provider-specific",
+                "limits": {
+                  "maxStateAndQuestionTokens": 32768
+                }
+              }
+            }
+          },
+          {
+            "id": "clef",
+            "name": "Clef (requires provisioning)",
+            "input": [
+              "text",
+              "image"
+            ],
+            "inference": {
+              "chat": false,
+              "decision": {
+                "protocol": "sarvam-systemone",
+                "input": [
+                  "text",
+                  "image"
+                ],
+                "questions": {
+                  "boolean": {
+                    "probabilities": "boolean",
+                    "abstention": false
+                  },
+                  "choice": {
+                    "probabilities": "categorical",
+                    "abstention": false,
+                    "minOptions": 2,
+                    "maxOptions": 255
+                  },
+                  "score": {
+                    "probabilities": "categorical",
+                    "abstention": false,
+                    "minOptions": 2,
+                    "maxOptions": 10
+                  }
+                },
+                "confidence": "provider-specific",
+                "limits": {
+                  "maxRequestTokens": 65536
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "cliCommands": [
+    {
+      "name": "sarvam",
+      "description": "Manage Sarvam speech transcription jobs",
+      "hasSubcommands": true
+    }
+  ],
+  "uiHints": {
+    "stt": {
+      "label": "Saaras transcription"
+    },
+    "tts": {
+      "label": "Bulbul speech"
+    },
+    "tokenFactory": {
+      "label": "Token Factory models"
+    }
+  }
 }
