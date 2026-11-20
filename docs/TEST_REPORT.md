@@ -2,7 +2,7 @@
 
 Tests ran on Fedora Linux on 20 November 2026 with Node.js 24.18.0, npm 12.2.0 and FFmpeg/FFprobe 8.1.3. Live Sarvam calls used one test account. All recordings were public evaluation speech or generated test phrases. Production plugins exclude test hooks, personal identifiers, recordings, keys and job receipts.
 
-**NOT READY for public ClawHub publication under the full acceptance criteria.** Saaras, Bulbul, the seven entitled chat models and Prism worked in OpenClaw. Telegram and WhatsApp accepted all eight Gateway-originated voice replies. Handset-originated conversations and eight provisioning-restricted model IDs remain open. The pull request contains the installable review build. [Implementation and CI checks](https://github.com/ANAMASGARD/openclaw-sarvam/pull/1)
+**v0.1.0 covers the verified services.** Saaras v3 and v4, Bulbul v3 and v4-flash, seven account-enabled chat models, and Prism decisions worked in OpenClaw. Telegram and WhatsApp accepted all eight Gateway-originated voice replies. Conversations started by a real phone remain unverified. Sarvam required organisation provisioning for eight additional model IDs. [Implementation and CI checks](https://github.com/ANAMASGARD/openclaw-sarvam/pull/1)
 
 ## Model APIs
 
@@ -22,6 +22,8 @@ The Saaras direct suite ran 13 cases across eight model/transport combinations. 
 The Bulbul direct suite synthesized 12 utterances. FFprobe verified their codecs, durations, rates and channels. Transcribing the received audio recovered 47 of 48 expected keywords in the initial run and all 48 in a repeat. The six English voice-note outputs were mono 48 kHz Ogg/Opus. Both models also returned raw signed 8 kHz PCM through OpenClaw's telephony surface. [Bulbul measurements](tts.md)
 
 The account's live catalog listed 16 IDs. Seven chat models and Prism returned usable answers. For eight restricted IDs the plugin normalized the upstream provisioning response to `provisioning_required`. Native OpenClaw embedding requests authenticated using both the process environment and a stored agent profile. Successful Clef inference, live embeddings and vector retrieval require provisioned access. [Per-model results](factory.md)
+
+The pre-release rerun used 30 Token Factory requests. All 14 enabled model/API combinations returned the expected answers. Requests to each of the eight restricted model IDs again returned HTTP 400 requiring provisioning. The same rerun exercised 13 Saaras cases and synthesized 12 English or Hindi Bulbul samples.
 
 Repeat testing exposed two ways an entitled model could briefly appear unknown. A catalog connection failed before a DeepSeek turn, and a freshly started Gateway accepted its first GLM turn before applying its background catalog. Discovery now retries recognized transient connection failures once within the original deadline. On a cold registry miss, OpenClaw's public `prepareDynamicModel` hook resolves the exact requested chat model from the active account. Tests cover socket reset, cancellation, policy rejection, an ambiguous write failure, and denying access under the wrong profile. [OpenClaw provider runtime hooks](https://docs.openclaw.ai/plugins/sdk-provider-plugins/runtime-hooks)
 

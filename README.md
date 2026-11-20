@@ -13,12 +13,21 @@ Give your OpenClaw agent a voice with one `SARVAM_API_KEY`. Saaras transcribes a
 | Spoken replies or streaming audio | Bulbul | `bulbul:v3` with `shubh`, or `bulbul:v4-flash` with `shubh_enhi_ads`. |
 | Decision and embedding APIs | Token Factory | Prism and provisioned Clef for decisions. Provisioned EmbeddingGemma for memory search. |
 
-## Install the review build
+## Install
 
 Use Node.js 24.16 or later in the 24.x line, or Node.js 26.1 or later. The tested host versions are OpenClaw 2026.11.5 and 2026.11.6. Install FFmpeg and FFprobe on the Gateway machine. The package includes the compiled JavaScript and uses the host Plugin SDK.
 
+To install v0.1.0 from ClawHub, run these commands on the Gateway machine. Review the capability prompts before enabling the plugin.
+
 ```sh
-git clone --branch feat/sarvam-provider https://github.com/ANAMASGARD/openclaw-sarvam.git
+openclaw plugins install clawhub:openclaw-plugin-sarvam@0.1.0
+openclaw plugins enable sarvam
+```
+
+To build and install the package from source instead, use the repository's default branch.
+
+```sh
+git clone https://github.com/ANAMASGARD/openclaw-sarvam.git
 cd openclaw-sarvam
 npm ci --ignore-scripts
 npm run build
@@ -26,8 +35,6 @@ npm pack
 openclaw plugins install "npm-pack:$PWD/openclaw-plugin-sarvam-0.1.0.tgz"
 openclaw plugins enable sarvam
 ```
-
-Review the local-source and capability prompts during installation. After public ClawHub release, the registry installation command is `openclaw plugins install clawhub:openclaw-plugin-sarvam@0.1.0`. See the test report for this build's publication status.
 
 ## Connect your Sarvam account
 
@@ -64,6 +71,17 @@ Merge the settings you need into your existing OpenClaw configuration. Use the c
 
 This example transcribes with v4 and speaks with v3. Set `tts.auto` to `always` for spoken replies to text messages too. Run `openclaw config validate` after editing and reload your Gateway. Once your Telegram bot or WhatsApp account is connected to OpenClaw, send a short voice note in the approved private chat. OpenClaw passes the transcript to its agent, and Bulbul returns mono Ogg/Opus for voice-note delivery. [OpenClaw Telegram setup](https://docs.openclaw.ai/channels/telegram) · [OpenClaw WhatsApp setup](https://docs.openclaw.ai/channels/whatsapp)
 
+## Which channels can use Sarvam?
+
+Your Sarvam key connects the models. OpenClaw connects the agent to each messaging service with that service's bot credentials or paired account. A text chatbot needs a working text channel. A recorded voice conversation also needs a channel that can receive audio and send a playable reply.
+
+| Channel | What to expect in v0.1.0 |
+| --- | --- |
+| Telegram and WhatsApp | All four Saaras/Bulbul pairs produced real outbound voice messages. The test began with an audio file submitted to the Gateway. [Channel evidence](docs/TEST_REPORT.md#real-channel-delivery) |
+| Slack, Teams, Discord, Google Chat, Lark/Feishu, Mattermost, Signal, iMessage, Nextcloud Talk, LINE and Matrix | OpenClaw documents messaging adapters for these services. Audio handling depends on the adapter. This release did not run Sarvam end to end on them. [OpenClaw channel catalog](https://docs.openclaw.ai/channels) |
+| Nostr, X/Twitter and Twilio SMS | Nostr accepts encrypted text DMs. X handles public mentions and replies. Twilio uses SMS for text and MMS for attachments. Telephone calls need the separate Voice Call plugin. [Nostr](https://docs.openclaw.ai/channels/nostr#limitations) · [X](https://docs.openclaw.ai/channels/x) · [SMS](https://docs.openclaw.ai/channels/sms) · [Voice Call](https://docs.openclaw.ai/plugins/voice-call) |
+| Rocket.Chat, Zulip and Reddit | Rocket.Chat and Zulip have separately maintained messaging adapters. The Reddit integration we verified provides data tools. Sarvam channel delivery was untested on all three. [Rocket.Chat adapter](https://github.com/RocketChat/OpenClaw.Plugin) · [Zulip adapter](https://github.com/whizzlelabs/openclaw-zulip) · [Reddit API plugin](https://clawhub.ai/agntdata/plugins/openclaw-reddit) |
+
 ## Provider details
 
 - Saaras supports short recordings, durable multi-file Batch jobs, modern realtime transcription and the legacy WebSocket protocol. The plugin measures recordings locally. Files longer than 30 seconds use Batch. [STT options, recovery and verification](docs/stt.md)
@@ -89,7 +107,7 @@ npm run test:package
 npm audit --omit=dev
 ```
 
-The live channel suite sent all four speech-model combinations to a private Telegram chat and to a linked WhatsApp self-chat. It submitted generated audio through OpenClaw, downloaded Telegram's stored replies, and verified the audio accepted for each WhatsApp send. Handset-originated voice conversations and provisioning-restricted Token Factory services remain open release checks. [Test report](docs/TEST_REPORT.md)
+The live channel suite sent all four speech-model combinations to a private Telegram chat and to a linked WhatsApp self-chat. It submitted generated audio through OpenClaw, downloaded Telegram's stored replies, and verified the outgoing audio accepted by WhatsApp. Voice conversations started from a phone and WhatsApp recipient playback remain unverified. Eight Token Factory IDs required provisioning on the test account, including Clef and EmbeddingGemma. [Test report](docs/TEST_REPORT.md)
 
 To repeat billed tests, prepare the public FLEURS samples following the Saaras guide, set `SARVAM_API_KEY` or `SARVAM_TEST_KEY_FILE`, and run `SARVAM_LIVE_TEST=1 npm run test:live`. The separate channel suite uses explicitly selected private recipients. [Saaras fixtures](docs/stt.md) · [Channel verification](docs/channel-tests.md)
 
