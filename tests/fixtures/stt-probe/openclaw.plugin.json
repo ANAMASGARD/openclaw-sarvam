@@ -1,0 +1,6 @@
+{
+  "id": "sarvam-stt-probe",
+  "name": "Saaras meeting-engine test",
+  "activation": { "onStartup": true },
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}

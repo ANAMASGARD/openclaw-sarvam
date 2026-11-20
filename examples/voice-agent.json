@@ -1,0 +1,50 @@
+{
+  "plugins": {
+    "entries": {
+      "sarvam": {
+        "enabled": true,
+        "config": {
+          "stt": true,
+          "tts": true,
+          "tokenFactory": true
+        }
+      }
+    }
+  },
+  "tools": {
+    "media": {
+      "audio": {
+        "enabled": true,
+        "language": "en-IN"
+      },
+      "models": [
+        {
+          "provider": "sarvam",
+          "model": "saaras:v4",
+          "capabilities": [
+            "audio"
+          ]
+        }
+      ]
+    }
+  },
+  "tts": {
+    "auto": "inbound",
+    "provider": "sarvam",
+    "providers": {
+      "sarvam": {
+        "modelId": "bulbul:v4-flash",
+        "speaker": "shubh_enhi_ads",
+        "language": "en-IN"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "sarvam/glm5.3-flash",
+        "fallbacks": []
+      }
+    }
+  }
+}

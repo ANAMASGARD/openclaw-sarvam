@@ -1,0 +1,11 @@
+{
+  "name": "sarvam-tts-probe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  }
+}

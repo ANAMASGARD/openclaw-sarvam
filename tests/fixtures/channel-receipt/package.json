@@ -1,0 +1,10 @@
+{
+  "name": "sarvam-channel-receipt",
+  "version": "0.0.1",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  }
+}

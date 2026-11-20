@@ -1,0 +1,23 @@
+name: Verify plugin
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        host: ['2026.11.5', '2026.11.6']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+          cache: npm
+      - run: npm install --global --ignore-scripts npm@12.2.0
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck && npm test && npm run validate && npm run lint
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm install --prefix "$RUNNER_TEMP/sarvam-host" --ignore-scripts openclaw@${{ matrix.host }}
+      - run: OPENCLAW_BIN="$RUNNER_TEMP/sarvam-host/node_modules/.bin/openclaw" npm run test:package
