@@ -42,14 +42,14 @@ The two real private accounts were an allowlisted Telegram bot DM and the linked
 
 | Saaras for input | Bulbul for reply | Real Telegram voice file | Real WhatsApp voice send |
 | --- | --- | --- | --- |
-| `saaras:v3` | `bulbul:v3` | PASS, 1.12 s | PASS, 1.46 s |
-| `saaras:v3` | `bulbul:v4-flash` | PASS, 1.13 s | PASS, 2.09 s |
-| `saaras:v4` | `bulbul:v3` | PASS, 5.01 s | PASS, 2.57 s |
-| `saaras:v4` | `bulbul:v4-flash` | PASS, 1.85 s | PASS on repeat, 3.21 s |
+| `saaras:v3` | `bulbul:v3` | PASS, 2.82 s | PASS, 1.12 s |
+| `saaras:v3` | `bulbul:v4-flash` | PASS, 1.21 s | PASS, 1.37 s |
+| `saaras:v4` | `bulbul:v3` | PASS, 1.03 s | PASS, 1.54 s |
+| `saaras:v4` | `bulbul:v4-flash` | PASS, 1.05 s | PASS, 1.45 s |
 
 Telegram returned a `sendVoice` receipt for each reply. The harness downloaded Telegram's stored file with `getFile` and checked that file. WhatsApp's official OpenClaw channel accepted each voice send and returned a message ID. Its duration and spoken-content checks used the outgoing file passed to the channel. WhatsApp recipient-side download and playback are **NOT TESTED**.
 
-The first full external run passed all eight pairs. On the later candidate run shown in the table, WhatsApp accepted the v4/v4-flash send, but the automated transcription missed the expected three-word sequence. That attempt was **FAIL**. A focused repeat passed with the same model selection and acceptance rule. The first trial's audio had already been cleaned up, so the source of the content difference is unknown. The harness now retains mismatched generated clips in the operator's private evidence directory.
+All eight cells passed on the first attempt in the release rerun shown above. An earlier candidate run had one **FAIL** when the automated transcription of the WhatsApp v4/v4-flash reply missed the expected three-word sequence. A focused repeat passed. The earlier audio had already been cleaned up, so the cause of the mismatch is unknown. The harness now retains mismatched generated clips in the operator's private evidence directory.
 
 Eight genuine handset-originated voice conversations remain **BLOCKED**. The Telegram account sent the bot a real private Start message. No handset voice note arrived during the live input windows. In a separate trial, WhatsApp accepted a test recording sent to the linked account's self-chat. Its adapter produced no new inbound event for that self-sent message. Neither trial supplies a handset voice receipt. Raw chat IDs, message IDs and credentials stay outside the repository. [Channel acceptance procedure](channel-tests.md)
 
